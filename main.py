@@ -70,13 +70,18 @@ class SmartProxy:
         """Check if a host matches any whitelist pattern"""
         # Direct match
         if host in self.whitelist:
+            ctx.log.info(f"Exact match found for {host} in whitelist")
             return True
             
         # Wildcard match (for patterns like *.google.com)
         for pattern in self.whitelist:
             if pattern.startswith('*.'):
-                suffix = pattern[1:]  # Remove the '*'
-                if host.endswith(suffix):
+                # Extract the domain without the wildcard
+                domain_part = pattern[2:] # Remove the '*.' prefix
+                
+                # Match either the exact domain or any subdomain
+                if host == domain_part or host.endswith('.' + domain_part):
+                    ctx.log.info(f"Wildcard match: {host} matches pattern {pattern}")
                     return True
                     
         return False
@@ -288,6 +293,8 @@ class SmartProxy:
         # If host is whitelisted or client_id is in whitelisted_tabs, skip analysis
         if self._is_whitelisted(host) or client_id in self.whitelisted_tabs:
             flow.metadata["skip_analysis"] = True
+            # Log that this domain was skipped due to whitelist
+            ctx.log.info(f"Skipping analysis for whitelisted domain: {host}")
             return
         
         # Check content type - only analyze HTML
@@ -330,7 +337,12 @@ class SmartProxy:
                 # Remove trailing slash for URL in logs
                 clean_url = url.rstrip('/')
                 ctx.log.warn(f"[ML-PHISHING] High confidence phishing detected: {clean_url} ({confidence:.4f})")
-                self.blacklist.add(flow.request.host)
+                
+                # Only add to blacklist if not in whitelist
+                if not self._is_whitelisted(flow.request.host):
+                    self.blacklist.add(flow.request.host)
+                else:
+                    ctx.log.info(f"Domain {flow.request.host} flagged by ML but is whitelisted, not adding to blacklist")
                 # Create a unique bypass token for this host - make sure to create one that's unique
                 # but consistent for the same domain during a short time window
                 timestamp = int(time.time()) // 10 * 10  # Round to nearest 10 seconds for stability
