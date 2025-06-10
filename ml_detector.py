@@ -9,9 +9,10 @@ import logging
 from collections import Counter
 import math
 from Levenshtein import distance as levenshtein_distance
+from log_config import setup_logging, log_metric, log_event
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Initialize logger for Grafana-compatible logging
+logger = setup_logging()
 
 class MLPhishingDetector:
     def __init__(self, model_path, brands_path):
@@ -28,11 +29,26 @@ class MLPhishingDetector:
             start_time = time.time()
             if os.path.exists(self.model_path):
                 self.model = joblib.load(self.model_path)
-                logging.info(f"Model loaded in {time.time() - start_time:.3f} seconds")
+                load_time = time.time() - start_time
+                logging.info(f"Model loaded in {load_time:.3f} seconds")
+                
+                # Log model loading time for Grafana
+                log_metric(logger, "ml_model_load_time", float(load_time), {
+                    "model_path": self.model_path,
+                    "model_type": "xgboost"
+                })
+                
+                # Log model load event
+                log_event(logger, "model_loaded", {
+                    "model_path": self.model_path,
+                    "load_time": float(load_time)
+                })
             else:
                 logging.error(f"Model not found at {self.model_path}")
+                log_event(logger, "model_load_failed", {"reason": "file_not_found", "path": self.model_path})
         except Exception as e:
             logging.error(f"Error loading model: {e}")
+            log_event(logger, "model_load_failed", {"reason": str(e), "path": self.model_path})
 
     def load_brands(self):
         if os.path.exists(self.brands_path):
@@ -126,12 +142,14 @@ class MLPhishingDetector:
     def predict(self, url, html_content):
         if self.model is None:
             logging.error("Model not loaded")
+            log_event(logger, "prediction_failed", {"reason": "model_not_loaded", "url": url})
             return False, 0.0, 0.0
 
         start = time.time()
         try:
             features_dict = self.extract_features(url, html_content)
             if features_dict is None:
+                log_event(logger, "feature_extraction_failed", {"url": url})
                 return False, 0.0, float(time.time() - start)
                 
             X = self.prepare_features(features_dict)
@@ -140,8 +158,26 @@ class MLPhishingDetector:
             # Convert NumPy float32 to standard Python float for JSON serialization
             confidence = float(probas[1])  # phishing class
             prediction = int(confidence >= self.confidence_threshold)
+            prediction_time = float(time.time() - start)
             
-            return prediction == 1, confidence, float(time.time() - start)
+            # Log prediction metrics for Grafana
+            log_metric(logger, "ml_prediction_time", prediction_time, {
+                "is_phishing": prediction == 1,
+                "confidence": confidence,
+                "domain": urlparse(url).netloc
+            })
+            
+            # Log prediction result
+            log_event(logger, "ml_prediction", {
+                "url": url,
+                "is_phishing": prediction == 1,
+                "confidence": confidence,
+                "prediction_time": prediction_time,
+                "feature_count": len(features_dict)
+            })
+            
+            return prediction == 1, confidence, prediction_time
         except Exception as e:
             logging.error(f"Prediction error: {e}")
+            log_event(logger, "prediction_failed", {"reason": str(e), "url": url})
             return False, 0.0, float(time.time() - start)

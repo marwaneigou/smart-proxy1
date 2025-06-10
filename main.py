@@ -1,9 +1,16 @@
+import logging
 import time
+import re
+import urllib.parse
+import os
 import json
-import os.path
-from mitmproxy import ctx, http
+from mitmproxy import http, ctx
+from log_config import setup_logging, log_metric, log_event
 from traffic_analyzer import TrafficAnalyzer
 from ml_detector import MLPhishingDetector
+
+# Initialize logger
+logger = setup_logging()
 
 class SmartProxy:
     def __init__(self):
@@ -79,6 +86,14 @@ class SmartProxy:
         url = flow.request.pretty_url
         path = flow.request.path
         host = flow.request.host
+        client_id = flow.client_conn.id
+        
+        # Log request metrics for Grafana
+        log_metric(logger, "request", 1, {
+            "host": host,
+            "client_id": client_id,
+            "path_type": "bypass" if path.startswith('/bypass') else "standard"
+        })
         
         # Check if this is a bypass request
         if path.startswith('/bypass'):
@@ -116,16 +131,22 @@ class SmartProxy:
             if matched_token:
                 token = matched_token
                 # Get the domain associated with this token
-                bypassed_host = self.bypass_tokens[token]
-                ctx.log.warn(f"Bypass granted for domain: {bypassed_host}")
+                bypass_domain = self.bypass_tokens[token]
+                ctx.log.warn(f"Bypass granted for domain: {bypass_domain}")
                 
                 # Create temporary whitelist for this client
                 client_id = flow.client_conn.id
-                self.whitelisted_tabs[client_id] = bypassed_host
+                self.whitelisted_tabs[client_id] = bypass_domain
+                
+                # Log successful bypass for Grafana
+                log_event(logger, "bypass_granted", {
+                    "client_id": client_id,
+                    "domain": bypass_domain
+                })
                 
                 # Create a redirect response - use the same protocol (http/https) as original request
                 protocol = "https" if flow.request.scheme == "https" else "http"
-                redirect_url = f"{protocol}://{bypassed_host}"
+                redirect_url = f"{protocol}://{bypass_domain}"
                 ctx.log.info(f"Redirecting to: {redirect_url}")
                 
                 flow.response = http.Response.make(
@@ -136,6 +157,7 @@ class SmartProxy:
                 
                 # Clean up used token
                 del self.bypass_tokens[token]
+                ctx.log.info(f"Removed used token {token}")
                 return
             else:
                 # Invalid token
@@ -270,9 +292,11 @@ class SmartProxy:
         
         # Check content type - only analyze HTML
         content_type = flow.response.headers.get("content-type", "")
-        if "text/html" not in content_type:
+        if not content_type.startswith("text/html"):
+            # Log skipped content types for Grafana
+            log_metric(logger, "skipped_content", 1, {"content_type": content_type.split(';')[0]})
             return
-            
+        
         # Skip if response is too large (for performance)
         if len(flow.response.content) > 1000000:  # 1MB limit
             ctx.log.info(f"Skipping large page: {flow.request.pretty_url.rstrip('/')} ({len(flow.response.content)} bytes)")
@@ -291,8 +315,18 @@ class SmartProxy:
             # Log ML detection results
             ctx.log.info(f"ML detection: {ml_time_ms*1000:.2f}ms, confidence: {confidence:.4f}, is_phishing: {is_phishing}")
             
-            # If ML model is confident this is phishing, block immediately
-            if is_phishing and confidence >= self.config['ml_confidence_threshold']:
+            # If ML detection says it's phishing with high confidence
+            if is_phishing and confidence > self.config['ml_confidence_threshold']:
+                ctx.log.warn(f"ML Phishing detected: {flow.request.pretty_url} with {confidence*100:.1f}% confidence")
+                
+                # Log ML phishing detection for Grafana
+                log_event(logger, "ml_phishing_detected", {
+                    "url": flow.request.pretty_url,
+                    "host": flow.request.host,
+                    "confidence": float(confidence),
+                    "client_id": flow.client_conn.id
+                })
+                
                 # Remove trailing slash for URL in logs
                 clean_url = url.rstrip('/')
                 ctx.log.warn(f"[ML-PHISHING] High confidence phishing detected: {clean_url} ({confidence:.4f})")
@@ -453,5 +487,12 @@ class SmartProxy:
             ctx.log.warn(f"Slow analysis: {analysis_time:.1f}ms for {flow.request.pretty_url}")
         else:
             ctx.log.info(f"Fast analysis: {analysis_time:.1f}ms for {flow.request.pretty_url}")
+            
+        # Log performance metrics for Grafana
+        log_metric(logger, "analysis_time_ms", float(analysis_time), {
+            "url": flow.request.pretty_url,
+            "host": flow.request.host,
+            "is_slow": analysis_time > self.config['scan_timeout_ms']
+        })
 
 addons = [SmartProxy()]

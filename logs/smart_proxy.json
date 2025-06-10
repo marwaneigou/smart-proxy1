@@ -1,0 +1,113 @@
+{"timestamp": 1749525915255, "level": "INFO", "logger": "root", "message": "Model loaded in 0.892 seconds"}
+{"timestamp": 1749525915256, "level": "INFO", "logger": "root", "message": "METRIC:ml_model_load_time:0.8917076587677002", "ml_model_load_time": 0.8917076587677002, "model_path": "phishing_xgb_model.pkl", "model_type": "xgboost"}
+{"timestamp": 1749525915256, "level": "INFO", "logger": "root", "message": "EVENT:model_loaded", "event": "model_loaded", "model_path": "phishing_xgb_model.pkl", "load_time": 0.8917076587677002}
+{"timestamp": 1749525915525, "level": "INFO", "logger": "root", "message": "Config loaded from config.json"}
+{"timestamp": 1749525915919, "level": "INFO", "logger": "root", "message": "Loaded 1000005 whitelist patterns from whitelist.json"}
+{"timestamp": 1749525915928, "level": "INFO", "logger": "root", "message": "Smart Proxy initialized with config:"}
+{"timestamp": 1749525915929, "level": "INFO", "logger": "root", "message": "{\n  \"scan_timeout_ms\": 500,\n  \"cache_duration\": 3600,\n  \"exclude_extensions\": [\n    \".js\",\n    \".css\",\n    \".jpg\",\n    \".jpeg\",\n    \".png\",\n    \".gif\",\n    \".svg\",\n    \".woff\",\n    \".woff2\",\n    \".ico\",\n    \".mp4\",\n    \".webp\"\n  ],\n  \"exclude_domains\": [\n    \"googleapis.com\",\n    \"gstatic.com\",\n    \"jquery.com\",\n    \"cloudflare.com\",\n    \"fontawesome.com\",\n    \"cdn.jsdelivr.net\",\n    \"cdnjs.cloudflare.com\"\n  ],\n  \"ml_confidence_threshold\": 0.85,\n  \"ml_settings\": {\n    \"confidence_threshold\": 0.85,\n    \"enabled\": true,\n    \"feature_importance\": true,\n    \"blocking_mode\": true\n  }\n}"}
+{"timestamp": 1749525915932, "level": "INFO", "logger": "mitmproxy.proxy.mode_servers", "message": "HTTP(S) proxy listening at *:8080."}
+{"timestamp": 1749525916159, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749525917059, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749525943480, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749525943721, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "server connect www.youtube.com:443 (172.217.18.238:443)"}
+{"timestamp": 1749525943876, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.youtube.com", "client_id": "aaecc3dd-84e1-4a47-9cba-f66dc7aff3b5", "path_type": "standard"}
+{"timestamp": 1749525944161, "level": "INFO", "logger": "root", "message": "Host www.youtube.com is in whitelist, marking tab as trusted"}
+{"timestamp": 1749526039479, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749526039621, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "server connect 00000000000000000000000056000005-102299.weeblysite.com:443 (74.115.51.54:443)"}
+{"timestamp": 1749526039855, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "00000000000000000000000056000005-102299.weeblysite.com", "client_id": "58765f0f-dcb6-425c-bf1a-42e44af2bd01", "path_type": "standard"}
+{"timestamp": 1749526041602, "level": "INFO", "logger": "root", "message": "METRIC:ml_prediction_time:0.003541707992553711", "ml_prediction_time": 0.003541707992553711, "is_phishing": true, "confidence": 0.9757477641105652, "domain": "00000000000000000000000056000005-102299.weeblysite.com"}
+{"timestamp": 1749526041602, "level": "INFO", "logger": "root", "message": "EVENT:ml_prediction", "event": "ml_prediction", "url": "https://00000000000000000000000056000005-102299.weeblysite.com", "is_phishing": true, "confidence": 0.9757477641105652, "prediction_time": 0.003541707992553711, "feature_count": 29}
+{"timestamp": 1749526041603, "level": "INFO", "logger": "root", "message": "ML detection: 3.54ms, confidence: 0.9757, is_phishing: True"}
+{"timestamp": 1749526041603, "level": "WARNING", "logger": "root", "message": "ML Phishing detected: https://00000000000000000000000056000005-102299.weeblysite.com/ with 97.6% confidence"}
+{"timestamp": 1749526041604, "level": "INFO", "logger": "root", "message": "EVENT:ml_phishing_detected", "event": "ml_phishing_detected", "url": "https://00000000000000000000000056000005-102299.weeblysite.com/", "host": "00000000000000000000000056000005-102299.weeblysite.com", "confidence": 0.9757477641105652, "client_id": "58765f0f-dcb6-425c-bf1a-42e44af2bd01"}
+{"timestamp": 1749526041605, "level": "WARNING", "logger": "root", "message": "[ML-PHISHING] High confidence phishing detected: https://00000000000000000000000056000005-102299.weeblysite.com (0.9757)"}
+{"timestamp": 1749526041605, "level": "INFO", "logger": "root", "message": "Created bypass token for 00000000000000000000000056000005-102299.weeblysite.com: 00000000000000000000000056000005-102299.weeblysite.com_1749526040"}
+{"timestamp": 1749526041685, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749526115039, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client disconnect"}
+{"timestamp": 1749526115040, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "server disconnect www.youtube.com:443 (172.217.18.238:443)"}
+{"timestamp": 1749526212620, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client disconnect"}
+{"timestamp": 1749526212620, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "server disconnect 00000000000000000000000056000005-102299.weeblysite.com:443 (74.115.51.54:443)"}
+{"timestamp": 1749526274627, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749526274940, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "server connect www.youtube.com:443 (172.217.171.238:443)"}
+{"timestamp": 1749526275131, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.youtube.com", "client_id": "fa16a468-382e-49a5-81da-dc41a1bff89c", "path_type": "standard"}
+{"timestamp": 1749526275413, "level": "INFO", "logger": "root", "message": "Host www.youtube.com is in whitelist, marking tab as trusted"}
+{"timestamp": 1749526357613, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749526357847, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "server connect ads.mozilla.org:443 (34.36.137.203:443)"}
+{"timestamp": 1749526357997, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "ads.mozilla.org", "client_id": "b32c6d7f-d551-40f8-ae73-0f8e9e26e297", "path_type": "standard"}
+{"timestamp": 1749526358259, "level": "INFO", "logger": "root", "message": "Host ads.mozilla.org is in whitelist, marking tab as trusted"}
+{"timestamp": 1749526429595, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749526429728, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client disconnect"}
+{"timestamp": 1749526429729, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "error establishing server connection: client disconnected"}
+{"timestamp": 1749526429799, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749526429921, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "server connect www.google.com:443 (142.251.37.164:443)"}
+{"timestamp": 1749526430060, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.google.com", "client_id": "7fc0e5ee-1c96-4c7d-bf97-a83e71c22ed2", "path_type": "standard"}
+{"timestamp": 1749526430060, "level": "INFO", "logger": "root", "message": "Host www.google.com is in whitelist, marking tab as trusted"}
+{"timestamp": 1749526430295, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.google.com", "client_id": "7fc0e5ee-1c96-4c7d-bf97-a83e71c22ed2", "path_type": "standard"}
+{"timestamp": 1749526430295, "level": "INFO", "logger": "root", "message": "Allowing request from whitelisted tab: https://www.google.com/complete/search?client=firefox&channel=fen&q=marwa"}
+{"timestamp": 1749526430510, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.google.com", "client_id": "7fc0e5ee-1c96-4c7d-bf97-a83e71c22ed2", "path_type": "standard"}
+{"timestamp": 1749526430510, "level": "INFO", "logger": "root", "message": "Allowing request from whitelisted tab: https://www.google.com/complete/search?client=firefox&channel=fen&q=marwan"}
+{"timestamp": 1749526430666, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.google.com", "client_id": "7fc0e5ee-1c96-4c7d-bf97-a83e71c22ed2", "path_type": "standard"}
+{"timestamp": 1749526430667, "level": "INFO", "logger": "root", "message": "Allowing request from whitelisted tab: https://www.google.com/complete/search?client=firefox&channel=fen&q=marwane"}
+{"timestamp": 1749526430837, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.google.com", "client_id": "7fc0e5ee-1c96-4c7d-bf97-a83e71c22ed2", "path_type": "standard"}
+{"timestamp": 1749526430838, "level": "INFO", "logger": "root", "message": "Allowing request from whitelisted tab: https://www.google.com/complete/search?client=firefox&channel=fen&q=marwanei"}
+{"timestamp": 1749526430977, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.google.com", "client_id": "7fc0e5ee-1c96-4c7d-bf97-a83e71c22ed2", "path_type": "standard"}
+{"timestamp": 1749526430978, "level": "INFO", "logger": "root", "message": "Allowing request from whitelisted tab: https://www.google.com/complete/search?client=firefox&channel=fen&q=marwaneig"}
+{"timestamp": 1749526431132, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.google.com", "client_id": "7fc0e5ee-1c96-4c7d-bf97-a83e71c22ed2", "path_type": "standard"}
+{"timestamp": 1749526431133, "level": "INFO", "logger": "root", "message": "Allowing request from whitelisted tab: https://www.google.com/complete/search?client=firefox&channel=fen&q=marwaneigo"}
+{"timestamp": 1749526431381, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.google.com", "client_id": "7fc0e5ee-1c96-4c7d-bf97-a83e71c22ed2", "path_type": "standard"}
+{"timestamp": 1749526431382, "level": "INFO", "logger": "root", "message": "Allowing request from whitelisted tab: https://www.google.com/complete/search?client=firefox&channel=fen&q=marwaneigou"}
+{"timestamp": 1749526431475, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.google.com", "client_id": "7fc0e5ee-1c96-4c7d-bf97-a83e71c22ed2", "path_type": "standard"}
+{"timestamp": 1749526431475, "level": "INFO", "logger": "root", "message": "Allowing request from whitelisted tab: https://www.google.com/complete/search?client=firefox&channel=fen&q=marwaneigour"}
+{"timestamp": 1749526431708, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.google.com", "client_id": "7fc0e5ee-1c96-4c7d-bf97-a83e71c22ed2", "path_type": "standard"}
+{"timestamp": 1749526431708, "level": "INFO", "logger": "root", "message": "Allowing request from whitelisted tab: https://www.google.com/complete/search?client=firefox&channel=fen&q=marwaneigourra"}
+{"timestamp": 1749526431939, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.google.com", "client_id": "7fc0e5ee-1c96-4c7d-bf97-a83e71c22ed2", "path_type": "standard"}
+{"timestamp": 1749526431941, "level": "INFO", "logger": "root", "message": "Allowing request from whitelisted tab: https://www.google.com/complete/search?client=firefox&channel=fen&q=marwaneigourram"}
+{"timestamp": 1749526432153, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.google.com", "client_id": "7fc0e5ee-1c96-4c7d-bf97-a83e71c22ed2", "path_type": "standard"}
+{"timestamp": 1749526432154, "level": "INFO", "logger": "root", "message": "Allowing request from whitelisted tab: https://www.google.com/complete/search?client=firefox&channel=fen&q=marwaneigourrame"}
+{"timestamp": 1749526432307, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "www.google.com", "client_id": "7fc0e5ee-1c96-4c7d-bf97-a83e71c22ed2", "path_type": "standard"}
+{"timestamp": 1749526432307, "level": "INFO", "logger": "root", "message": "Allowing request from whitelisted tab: https://www.google.com/complete/search?client=firefox&channel=fen&q=marwaneigourramen"}
+{"timestamp": 1749526433624, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749526433919, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "server connect marwaneigourramen.com:443 (87.98.254.48:443)"}
+{"timestamp": 1749526434051, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "marwaneigourramen.com", "client_id": "2b831e7c-ffee-436d-947e-0d523682d1ea", "path_type": "standard"}
+{"timestamp": 1749526435043, "level": "INFO", "logger": "root", "message": "METRIC:ml_prediction_time:0.0037996768951416016", "ml_prediction_time": 0.0037996768951416016, "is_phishing": false, "confidence": 0.004218755755573511, "domain": "marwaneigourramen.com"}
+{"timestamp": 1749526435043, "level": "INFO", "logger": "root", "message": "EVENT:ml_prediction", "event": "ml_prediction", "url": "https://marwaneigourramen.com", "is_phishing": false, "confidence": 0.004218755755573511, "prediction_time": 0.0037996768951416016, "feature_count": 29}
+{"timestamp": 1749526435044, "level": "INFO", "logger": "root", "message": "ML detection: 3.80ms, confidence: 0.0042, is_phishing: False"}
+{"timestamp": 1749526435045, "level": "INFO", "logger": "root", "message": "Analysis completed in 0.0015 seconds for https://marwaneigourramen.com/"}
+{"timestamp": 1749526435045, "level": "INFO", "logger": "root", "message": "METRIC:analyzer_time_seconds:0.0015110969543457031", "analyzer_time_seconds": 0.0015110969543457031, "url": "https://marwaneigourramen.com/", "domain": "marwaneigourramen.com", "hit_count": 0, "is_phishing": false}
+{"timestamp": 1749526435045, "level": "INFO", "logger": "root", "message": "Fast analysis: 6.4ms for https://marwaneigourramen.com/"}
+{"timestamp": 1749526435046, "level": "INFO", "logger": "root", "message": "METRIC:analysis_time_ms:6.400108337402344", "analysis_time_ms": 6.400108337402344, "url": "https://marwaneigourramen.com/", "host": "marwaneigourramen.com", "is_slow": false}
+{"timestamp": 1749526435080, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749526435136, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749526435141, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "marwaneigourramen.com", "client_id": "2b831e7c-ffee-436d-947e-0d523682d1ea", "path_type": "standard"}
+{"timestamp": 1749526435685, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "marwaneigourramen.com", "client_id": "2b831e7c-ffee-436d-947e-0d523682d1ea", "path_type": "standard"}
+{"timestamp": 1749526436175, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749526436177, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749526436181, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "server connect incoming.telemetry.mozilla.org:443 (34.120.208.123:443)"}
+{"timestamp": 1749526436651, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "incoming.telemetry.mozilla.org", "client_id": "b24a2823-f970-46f5-ae56-5ea914baf68d", "path_type": "standard"}
+{"timestamp": 1749526436903, "level": "INFO", "logger": "root", "message": "Host incoming.telemetry.mozilla.org is in whitelist, marking tab as trusted"}
+{"timestamp": 1749526437040, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "server connect cdn.gpteng.co:443 (104.18.28.167:443)"}
+{"timestamp": 1749526437345, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "cdn.gpteng.co", "client_id": "8a60fe21-e1d9-415d-9cae-12047b8a2145", "path_type": "standard"}
+{"timestamp": 1749526438141, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "marwaneigourramen.com", "client_id": "2b831e7c-ffee-436d-947e-0d523682d1ea", "path_type": "standard"}
+{"timestamp": 1749526438984, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "marwaneigourramen.com", "client_id": "2b831e7c-ffee-436d-947e-0d523682d1ea", "path_type": "standard"}
+{"timestamp": 1749526440040, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "marwaneigourramen.com", "client_id": "2b831e7c-ffee-436d-947e-0d523682d1ea", "path_type": "standard"}
+{"timestamp": 1749526441217, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "marwaneigourramen.com", "client_id": "2b831e7c-ffee-436d-947e-0d523682d1ea", "path_type": "standard"}
+{"timestamp": 1749526442453, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "marwaneigourramen.com", "client_id": "2b831e7c-ffee-436d-947e-0d523682d1ea", "path_type": "standard"}
+{"timestamp": 1749526443500, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "marwaneigourramen.com", "client_id": "2b831e7c-ffee-436d-947e-0d523682d1ea", "path_type": "standard"}
+{"timestamp": 1749526446144, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client disconnect"}
+{"timestamp": 1749526446144, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "server disconnect www.youtube.com:443 (172.217.171.238:443)"}
+{"timestamp": 1749526480774, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749526480888, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "server connect 00000000000000000000000056000005-102299.weeblysite.com:443 (74.115.51.54:443)"}
+{"timestamp": 1749526481038, "level": "INFO", "logger": "root", "message": "METRIC:request:1", "request": 1, "host": "00000000000000000000000056000005-102299.weeblysite.com", "client_id": "2cb75b4e-2bbd-4d77-b85d-d5f273eb5bec", "path_type": "standard"}
+{"timestamp": 1749526481474, "level": "INFO", "logger": "root", "message": "Created bypass token for 00000000000000000000000056000005-102299.weeblysite.com: 00000000000000000000000056000005-102299.weeblysite.com_1749526480"}
+{"timestamp": 1749526481883, "level": "INFO", "logger": "root", "message": "METRIC:ml_prediction_time:0.0030443668365478516", "ml_prediction_time": 0.0030443668365478516, "is_phishing": true, "confidence": 0.9757477641105652, "domain": "00000000000000000000000056000005-102299.weeblysite.com"}
+{"timestamp": 1749526481884, "level": "INFO", "logger": "root", "message": "EVENT:ml_prediction", "event": "ml_prediction", "url": "https://00000000000000000000000056000005-102299.weeblysite.com", "is_phishing": true, "confidence": 0.9757477641105652, "prediction_time": 0.0030443668365478516, "feature_count": 29}
+{"timestamp": 1749526481884, "level": "INFO", "logger": "root", "message": "ML detection: 3.04ms, confidence: 0.9757, is_phishing: True"}
+{"timestamp": 1749526481884, "level": "WARNING", "logger": "root", "message": "ML Phishing detected: https://00000000000000000000000056000005-102299.weeblysite.com/ with 97.6% confidence"}
+{"timestamp": 1749526481885, "level": "INFO", "logger": "root", "message": "EVENT:ml_phishing_detected", "event": "ml_phishing_detected", "url": "https://00000000000000000000000056000005-102299.weeblysite.com/", "host": "00000000000000000000000056000005-102299.weeblysite.com", "confidence": 0.9757477641105652, "client_id": "2cb75b4e-2bbd-4d77-b85d-d5f273eb5bec"}
+{"timestamp": 1749526481885, "level": "WARNING", "logger": "root", "message": "[ML-PHISHING] High confidence phishing detected: https://00000000000000000000000056000005-102299.weeblysite.com (0.9757)"}
+{"timestamp": 1749526481885, "level": "INFO", "logger": "root", "message": "Created bypass token for 00000000000000000000000056000005-102299.weeblysite.com: 00000000000000000000000056000005-102299.weeblysite.com_1749526480"}
+{"timestamp": 1749526481887, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client disconnect"}
+{"timestamp": 1749526481940, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client connect"}
+{"timestamp": 1749526516168, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "Closing connection due to inactivity: Client(127.0.0.1:10279, state=open)"}
+{"timestamp": 1749526516169, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "client disconnect"}
+{"timestamp": 1749526516461, "level": "INFO", "logger": "mitmproxy.proxy.server", "message": "server disconnect marwaneigourramen.com:443 (87.98.254.48:443)"}
