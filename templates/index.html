@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing URL Scanner</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .navigation {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-link {
+            display: inline-block;
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-link:hover {
+            background-color: #2980b9;
+            text-decoration: none;
+            color: white;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input[type="url"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            margin: 20px auto;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .safe {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .unsafe {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+        }
+        
+        .details {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        .detection-method {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .detection-ml {
+            color: #d32f2f;
+        }
+        
+        .detection-traditional {
+            color: #2e7d32;
+        }
+        
+        .detection-combined {
+            color: #1976d2;
+        }
+        
+        .detection-whitelist {
+            color: #9c27b0;
+            font-weight: bold;
+        }
+        
+        .explanation {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        
+        .url-display {
+            word-break: break-all;
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        
+        .patterns-list {
+            margin-top: 10px;
+        }
+        
+        .patterns-list li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-section">
+            <h1>Phishing URL Scanner</h1>
+            <div class="navigation">
+                <a href="/whitelist" class="nav-link">Manage Whitelist</a>
+            </div>
+        </div>
+        <p>Enter a URL to scan for phishing and malicious content without visiting the website:</p>
+        
+        <form id="scan-form">
+            <div class="form-group">
+                <label for="url">URL to Scan:</label>
+                <input type="url" id="url" name="url" placeholder="https://example.com" required>
+            </div>
+            <button type="submit" id="scan-button">Scan URL</button>
+        </form>
+        
+        <div id="spinner" class="spinner"></div>
+        
+        <div id="result" class="result">
+            <h2 id="result-title"></h2>
+            <p id="result-message"></p>
+            <div class="url-display" id="url-display"></div>
+            <div id="detection-method" class="detection-method"></div>
+            <div id="explanation" class="explanation"></div>
+            <div id="result-details" class="details"></div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('scan-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const url = document.getElementById('url').value;
+            const scanButton = document.getElementById('scan-button');
+            const spinner = document.getElementById('spinner');
+            const result = document.getElementById('result');
+            
+            // Reset and show loading
+            result.style.display = 'none';
+            result.className = 'result';
+            scanButton.disabled = true;
+            spinner.style.display = 'block';
+            
+            try {
+                const response = await fetch('/scan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `url=${encodeURIComponent(url)}`
+                });
+                
+                let data = {};
+                try {
+                    data = await response.json();
+                } catch (error) {
+                    console.error('Error parsing JSON:', error);
+                    result.className = 'result unsafe';
+                    document.getElementById('result-title').textContent = 'Error';
+                    document.getElementById('result-message').textContent = 'Failed to scan URL: ' + error.message;
+                    loaderWrapper.style.display = 'none';
+                    scanButton.disabled = false;
+                    return;
+                }
+                
+                // Display result
+                const resultTitle = document.getElementById('result-title');
+                const resultMessage = document.getElementById('result-message');
+                const resultDetails = document.getElementById('result-details');
+                
+                if (response.ok) {
+                    if (data.safe) {
+                        if (data.whitelisted) {
+                            result.className = 'result safe';
+                            resultTitle.textContent = 'Trusted Domain';
+                            resultMessage.textContent = data.result;
+                        } else {
+                            result.className = 'result safe';
+                            resultTitle.textContent = 'Safe URL';
+                            resultMessage.textContent = data.result;
+                        }
+                    } else {
+                        result.className = 'result unsafe';
+                        resultTitle.textContent = 'Unsafe URL';
+                        resultMessage.textContent = data.result;
+                    }
+                    
+                    // Display URL (remove trailing slash if present)
+                    const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+                    document.getElementById('url-display').textContent = cleanUrl;
+                    
+                    // Display detection method with appropriate styling
+                    const detectionMethodEl = document.getElementById('detection-method');
+                    if (data.detection_method) {
+                        let methodClass = '';
+                        if (data.detection_method === 'Machine Learning Model') {
+                            methodClass = 'detection-ml';
+                        } else if (data.detection_method === 'Traditional Pattern Analysis') {
+                            methodClass = 'detection-traditional';
+                        } else if (data.detection_method === 'Whitelist') {
+                            methodClass = 'detection-whitelist';
+                        } else {
+                            methodClass = 'detection-combined';
+                        }
+                        detectionMethodEl.innerHTML = `Detection Method: <span class="${methodClass}">${data.detection_method}</span>`;
+                    }
+                    
+                    // Display explanation
+                    const explanationEl = document.getElementById('explanation');
+                    if (data.explanation) {
+                        explanationEl.innerHTML = `<h3>Why this result?</h3><p>${data.explanation}</p>`;
+                    } else {
+                        explanationEl.style.display = 'none';
+                    }
+                    
+                    // Add details
+                    let details = '';
+                    if (data.ml_confidence !== undefined) {
+                        details += `<p>ML Confidence: ${(data.ml_confidence * 100).toFixed(2)}%</p>`;
+                    }
+                    if (data.ml_time_ms !== undefined) {
+                        details += `<p>ML Analysis Time: ${data.ml_time_ms.toFixed(2)} ms</p>`;
+                    }
+                    if (data.patterns && data.patterns.length) {
+                        details += '<p>Detected Patterns:</p><ul class="patterns-list">';
+                        data.patterns.forEach(pattern => {
+                            details += `<li>${pattern}</li>`;
+                        });
+                        details += '</ul>';
+                    }
+                    resultDetails.innerHTML = details;
+                    
+                } else {
+                    result.className = 'result warning';
+                    resultTitle.textContent = 'Error';
+                    resultMessage.textContent = data.error || 'An unknown error occurred';
+                    resultDetails.innerHTML = '';
+                }
+            } catch (error) {
+                result.className = 'result warning';
+                document.getElementById('result-title').textContent = 'Error';
+                document.getElementById('result-message').textContent = 'Failed to scan URL: ' + error.message;
+                document.getElementById('result-details').innerHTML = '';
+            } finally {
+                scanButton.disabled = false;
+                spinner.style.display = 'none';
+                result.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

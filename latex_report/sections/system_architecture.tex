@@ -1,0 +1,83 @@
+The Smart Proxy system employs a modular architecture with several key components working together to provide comprehensive web security.
+
+\section{Core Components}
+
+\subsection{Proxy Server (main.py)}
+The foundation of the system is built on mitmproxy, an advanced HTTPS proxy that enables inspection and modification of web traffic. Our custom addon implemented in main.py intercepts HTTP/HTTPS traffic, extracts relevant content for analysis, and enforces security policies based on detection results.
+
+Key functions of the proxy server include:
+\begin{itemize}
+    \item Interception of web requests and responses
+    \item URL and HTML content extraction
+    \item Integration of detection modules
+    \item Generation and serving of block pages
+    \item Management of bypass tokens and trusted tabs
+    \item Whitelist and blacklist enforcement
+\end{itemize}
+
+\subsection{ML Phishing Detector (ml\_detector.py)}
+This component implements machine learning-based phishing detection using an XGBoost classifier. The model analyzes URL structure, domain characteristics, and HTML content features to identify potential phishing attempts with a confidence score.
+
+\subsection{Scanner Analyzer (scanner\_analyzer.py)}
+Complementing the ML approach, this module performs traditional pattern-based analysis by searching for:
+\begin{itemize}
+    \item Suspicious JavaScript patterns (obfuscation, eval usage)
+    \item Hidden iframes with external sources
+    \item Known phishing keywords and phrases
+    \item Potentially malicious form submission targets
+    \item Cross-site scripting (XSS) attempts
+\end{itemize}
+
+\subsection{Web Interface (scanner\_app.py)}
+A Flask-based web application providing a user-friendly interface for:
+\begin{itemize}
+    \item Manual URL scanning without visiting websites
+    \item Visualization of detection results and risk factors
+    \item Whitelist management with full CRUD operations
+    \item Configuration of security parameters
+\end{itemize}
+
+\section{Data Flow}
+
+The system data flow follows these general steps:
+
+\begin{enumerate}
+    \item User browser sends HTTP/HTTPS request via the proxy
+    \item Proxy extracts URL and determines if scanning is needed
+    \item For HTML responses, content is passed to detection modules
+    \item ML model and traditional analyzer evaluate content
+    \item If threats are detected, a block page is generated
+    \item User can proceed (via bypass) or return to safety
+    \item For trusted domains or bypassed sites, content passes through unmodified
+\end{enumerate}
+
+\section{Component Interaction Diagram}
+
+\begin{verbatim}
++---------------+        +-----------------+
+| User Browser  |<------>| mitmproxy       |
++---------------+        | (main.py)       |
+       ^                 +-----------------+
+       |                        | |
+       |                        v v
+       |                 +-----------------+
+       |                 | ML Detector     |<------+
+       v                 | Scanner Analyzer |      |
++---------------+        +-----------------+      |
+| Flask Web App |                                 |
+| (scanner_app) |<--------------------------------+
++---------------+
+\end{verbatim}
+
+\section{Configuration Management}
+
+The system uses JSON-based configuration files to manage:
+
+\begin{itemize}
+    \item ML model paths and confidence thresholds
+    \item Whitelist and blacklist entries
+    \item Scanning exclusions and performance settings
+    \item Block page templates and bypass settings
+\end{itemize}
+
+This modular architecture allows for easy extension and customization while maintaining a clear separation of concerns between the proxy functionality, detection algorithms, and user interface components.

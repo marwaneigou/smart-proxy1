@@ -1,0 +1,176 @@
+A key feature of the Smart Proxy phishing scanner is its innovative bypass system, which provides a secure mechanism for users to access sites that have been flagged as suspicious but are believed to be safe. This chapter examines the implementation, security considerations, and user experience of the bypass system.
+
+\section{Design Principles}
+
+The bypass system was designed with several core principles in mind:
+
+\begin{itemize}
+    \item \textbf{User Empowerment}: Allow users to make informed decisions about website safety
+    \item \textbf{Temporary Access}: Provide a time-limited, one-time bypass rather than permanent whitelisting
+    \item \textbf{Tab Isolation}: Ensure that bypass permissions apply only to the specific tab/client requesting access
+    \item \textbf{Clear Warnings}: Present explicit cautions about potential risks before granting bypass
+    \item \textbf{Secure Implementation}: Prevent bypass token abuse or manipulation
+\end{itemize}
+
+\section{Token Generation and Validation}
+
+The bypass mechanism is implemented using secure one-time tokens tied to specific domains:
+
+\begin{lstlisting}[language=Python, caption=Bypass Token System]
+def request(self, flow: http.HTTPFlow) -> None:
+    # Extract URL components
+    url = flow.request.pretty_url
+    host = flow.request.host
+    path = flow.request.path
+    client_id = flow.client_conn.id
+    
+    # Handle bypass requests
+    if path.startswith('/bypass'):
+        parsed_path = urllib.parse.urlparse(path)
+        params = urllib.parse.parse_qs(parsed_path.query)
+        
+        # Extract token from query parameters
+        token = None
+        if 'token' in params:
+            token = params['token'][0]
+            
+        # Handle special cases for certain domains (like Weebly sites)
+        # that might mangle the token
+        if not token and path.count('=') == 1:
+            # Try to extract mangled token
+            token = path.split('=')[1]
+            if '&' in token:
+                token = token.split('&')[0]
+            if '?' in token:
+                token = token.split('?')[0]
+                
+        logging.info(f"Extracted bypass token: {token}")
+            
+        # Validate the token
+        if token and token in self.bypass_tokens:
+            bypass_domain = self.bypass_tokens[token]
+            logging.info(f"Valid bypass token for domain: {bypass_domain}")
+            
+            # Grant temporary bypass for this tab/client
+            self.whitelisted_tabs[client_id] = bypass_domain
+            logging.info(f"Granted bypass for client {client_id} to access {bypass_domain}")
+            
+            # Remove the used token (one-time use)
+            del self.bypass_tokens[token]
+            logging.info(f"Removed used bypass token: {token}")
+            
+            # Redirect to the original domain with proper protocol
+            original_url = f"https://{bypass_domain}"
+            flow.response = http.HTTPResponse.make(
+                302,  # Redirect
+                b"Redirecting to site...",
+                {"Location": original_url}
+            )
+            return
+        else:
+            # Invalid token
+            flow.response = http.HTTPResponse.make(
+                403,  # Forbidden
+                b"Invalid bypass token. Access denied.",
+                {"Content-Type": "text/html"}
+            )
+            return
+\end{lstlisting}
+
+\section{Token Generation}
+
+When a site is blocked, a unique token is generated that encodes the domain and a timestamp:
+
+\begin{lstlisting}[language=Python, caption=Token Generation]
+def generate_bypass_token(host):
+    """Generate a one-time token for bypassing detection"""
+    # Round to nearest 10 seconds for stability
+    timestamp = str(int(time.time() / 10) * 10)
+    token = f"{host}:{timestamp}"
+    
+    # Create a hash of the token for security
+    hashed_token = hashlib.md5(token.encode()).hexdigest()
+    
+    # Store token with associated host
+    bypass_tokens[hashed_token] = host
+    return hashed_token
+\end{lstlisting}
+
+The token is then embedded in the block page's "Proceed Anyway" link:
+
+\begin{lstlisting}[language=HTML]
+<a href="/bypass?token=3f7c8a9d2e1b5f6..." class="btn btn-danger">
+    Proceed Anyway (Not Recommended)
+</a>
+\end{lstlisting}
+
+\section{Token Validation}
+
+When a user clicks the bypass link, the system:
+\begin{enumerate}
+    \item Extracts the token from the request URL
+    \item Validates it against stored tokens
+    \item Identifies the associated domain
+    \item Adds the domain to a client-specific whitelist
+    \item Removes the token from storage (one-time use)
+    \item Redirects the user to the requested site
+\end{enumerate}
+
+\section{Special Case Handling}
+
+The bypass system includes special handling for certain edge cases:
+
+\subsection{URL Mangling}
+Some websites, particularly those built on platforms like Weebly, may mangle URL parameters. The bypass system implements robust token extraction logic:
+
+\begin{lstlisting}[language=Python]
+# Handle special cases for certain domains (like Weebly sites)
+# that might mangle the token
+if not token and path.count('=') == 1:
+    # Try to extract mangled token
+    token = path.split('=')[1]
+    if '&' in token:
+        token = token.split('&')[0]
+    if '?' in token:
+        token = token.split('?')[0]
+\end{lstlisting}
+
+\subsection{Partial Token Matching}
+For additional robustness, the system can optionally implement partial token matching:
+
+\begin{lstlisting}[language=Python]
+# Optional: Check for partial token matches (not implemented in code above)
+if not exact_match and len(token) > 10:
+    for stored_token in list(self.bypass_tokens.keys()):
+        if token in stored_token or stored_token in token:
+            bypass_domain = self.bypass_tokens[stored_token]
+            del self.bypass_tokens[stored_token]  # Remove used token
+            return bypass_domain
+\end{lstlisting}
+
+\section{Security Considerations}
+
+The bypass system incorporates several security measures:
+
+\begin{itemize}
+    \item \textbf{One-time use}: Tokens are immediately invalidated after use
+    \item \textbf{Client/tab specificity}: Bypasses only apply to the specific client connection
+    \item \textbf{Short lifespan}: Unused tokens expire after a short period
+    \item \textbf{Domain-specific}: Tokens only work for their specific target domain
+    \item \textbf{Clear user warnings}: Users are explicitly warned about potential risks
+\end{itemize}
+
+\section{User Experience}
+
+From a user perspective, the bypass system provides a seamless experience:
+
+\begin{enumerate}
+    \item User attempts to access a flagged website
+    \item System displays a block page with detection details
+    \item User reviews information and decides to proceed
+    \item User clicks "Proceed Anyway" button
+    \item System validates the token and redirects to the original site
+    \item The bypass applies only for the current browsing session
+\end{enumerate}
+
+This approach balances security with user autonomy, allowing informed decisions without creating permanent security exceptions. The temporary nature of the bypass ensures that security is maintained for future visits, requiring re-evaluation of potentially dangerous sites.

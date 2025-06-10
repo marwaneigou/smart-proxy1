@@ -1,0 +1,94 @@
+\documentclass[12pt,a4paper]{report}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+
+% Page geometry
+\geometry{a4paper, margin=1in}
+
+% Define colors
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Define code listing style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Smart Proxy}
+\lhead{Phishing URL Scanner}
+\cfoot{\thepage}
+
+% Title
+\title{
+    \vspace{2cm}
+    \Huge \textbf{Smart Proxy: Advanced Phishing URL Scanner} \\
+    \vspace{0.5cm}
+    \Large \textit{A Machine Learning-Based Approach to Web Security}
+    \vspace{2cm}
+}
+\author{\Large Technical Report}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\chapter{Executive Summary}
+\input{sections/executive_summary}
+
+\chapter{System Architecture}
+\input{sections/system_architecture}
+
+\chapter{Technical Implementation}
+\input{sections/technical_implementation}
+
+\chapter{Phishing Detection Methods}
+\input{sections/detection_methods}
+
+\chapter{User Interface Design}
+\input{sections/ui_design}
+
+\chapter{The Bypass System}
+\input{sections/bypass_system}
+
+\chapter{Performance Optimization}
+\input{sections/performance}
+
+\chapter{Future Improvements}
+\input{sections/future_improvements}
+
+\chapter{Conclusion}
+\input{sections/conclusion}
+
+\end{document}

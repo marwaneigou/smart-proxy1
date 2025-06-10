@@ -1,0 +1,33 @@
+{
+  "scan_timeout_ms": 500,
+  "cache_duration": 3600,
+  "exclude_extensions": [
+    ".js", 
+    ".css", 
+    ".jpg", 
+    ".jpeg", 
+    ".png", 
+    ".gif", 
+    ".svg", 
+    ".woff", 
+    ".woff2", 
+    ".ico", 
+    ".mp4", 
+    ".webp"
+  ],
+  "exclude_domains": [
+    "googleapis.com", 
+    "gstatic.com", 
+    "jquery.com", 
+    "cloudflare.com", 
+    "fontawesome.com", 
+    "cdn.jsdelivr.net",
+    "cdnjs.cloudflare.com"
+  ],
+  "ml_settings": {
+    "confidence_threshold": 0.85,
+    "enabled": true,
+    "feature_importance": true,
+    "blocking_mode": true
+  }
+}
