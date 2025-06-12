@@ -2,10 +2,19 @@ from flask import Flask, request, render_template, jsonify, redirect, url_for
 import requests
 from urllib.parse import urlparse
 import os
+import urllib3
+
+# Disable SSL warnings for scanning purposes
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import json
 from ml_detector import MLPhishingDetector
 from scanner_analyzer import ScannerAnalyzer
 import math
+import time
+from log_config import setup_logging, log_metric, log_event
+
+# Initialize logger for web app
+logger = setup_logging(log_dir="logs", log_level=20)  # INFO level
 
 app = Flask(__name__)
 
@@ -52,25 +61,43 @@ def whitelist_manager():
     end_idx = min(start_idx + per_page, total_items)
     current_items = whitelist[start_idx:end_idx]
     
-    return render_template('whitelist.html', 
-                          domains=current_items, 
-                          page=page, 
-                          per_page=per_page, 
+    return render_template('whitelist.html',
+                          domains=current_items,
+                          page=page,
+                          per_page=per_page,
                           total_pages=total_pages,
                           total_items=total_items,
+                          total_domains=total_items,  # Add this for the stats card
                           search=search)
 
 @app.route('/whitelist/add', methods=['POST'])
 def add_whitelist_item():
-    domain = request.form.get('domain', '').strip()
-    
-    if not domain:
+    domain_input = request.form.get('domain', '').strip()
+
+    if not domain_input:
         return jsonify({'error': 'Domain is required'}), 400
-    
+
+    # Extract domain from URL if a full URL was provided
+    if domain_input.startswith(('http://', 'https://')):
+        try:
+            parsed = urlparse(domain_input)
+            domain = parsed.netloc
+        except Exception:
+            return jsonify({'error': 'Invalid URL format'}), 400
+    else:
+        domain = domain_input
+
+    # Remove www. prefix if present
+    if domain.startswith('www.'):
+        domain = domain[4:]
+
+    if not domain:
+        return jsonify({'error': 'Invalid domain'}), 400
+
     # Add to whitelist
     traffic_analyzer.whitelist.add(domain)
-    traffic_analyzer.save_whitelist()  # We'll add this method to ScannerAnalyzer
-    
+    traffic_analyzer.save_whitelist()
+
     return jsonify({'success': True, 'message': f'Added {domain} to whitelist'})
 
 @app.route('/whitelist/delete/<path:domain>', methods=['POST', 'DELETE'])
@@ -126,13 +153,45 @@ def bulk_add_whitelist():
     
     # Add all domains to whitelist
     added = 0
-    for domain in domains:
-        if domain not in traffic_analyzer.whitelist:
+    for domain_input in domains:
+        # Extract domain from URL if a full URL was provided
+        if domain_input.startswith(('http://', 'https://')):
+            try:
+                parsed = urlparse(domain_input)
+                domain = parsed.netloc
+            except Exception:
+                continue  # Skip invalid URLs
+        else:
+            domain = domain_input
+
+        # Remove www. prefix if present
+        if domain.startswith('www.'):
+            domain = domain[4:]
+
+        if domain and domain not in traffic_analyzer.whitelist:
             traffic_analyzer.whitelist.add(domain)
             added += 1
     
     traffic_analyzer.save_whitelist()
     return jsonify({'success': True, 'message': f'Added {added} domains to whitelist'})
+
+@app.route('/whitelist/export')
+def export_whitelist():
+    """Export whitelist as a text file"""
+    from flask import Response
+
+    # Get all domains from whitelist
+    domains = sorted(list(traffic_analyzer.whitelist))
+
+    # Create text content
+    content = '\n'.join(domains)
+
+    # Return as downloadable file
+    return Response(
+        content,
+        mimetype='text/plain',
+        headers={'Content-Disposition': 'attachment; filename=whitelist.txt'}
+    )
 
 @app.route('/scan', methods=['POST'])
 def scan_url():
@@ -156,10 +215,15 @@ def scan_url():
             clean_host = host
             
         print(f"Checking if {clean_host} is in whitelist")
-        
+
         # Use ScannerAnalyzer's whitelist checking
-        if traffic_analyzer._is_whitelisted(host) or traffic_analyzer._is_whitelisted(clean_host):
-            print(f"Found whitelist match for {host}")
+        host_whitelisted = traffic_analyzer._is_whitelisted(host)
+        clean_host_whitelisted = traffic_analyzer._is_whitelisted(clean_host)
+        print(f"Host {host} whitelisted: {host_whitelisted}")
+        print(f"Clean host {clean_host} whitelisted: {clean_host_whitelisted}")
+
+        if host_whitelisted or clean_host_whitelisted:
+            print(f"Found whitelist match for {host} - returning trusted response")
             return jsonify({
                 'result': 'Trusted domain',
                 'safe': True,
@@ -170,6 +234,8 @@ def scan_url():
                 'ml_time_ms': 0.0,
                 'analysis_time_ms': 0.0
             })
+        else:
+            print(f"No whitelist match found for {host} or {clean_host}")
     except Exception as e:
         print(f"Error checking whitelist: {e}")
     
@@ -182,11 +248,21 @@ def scan_url():
         return jsonify({'error': 'Invalid URL format'}), 400
     
     try:
+        start_time = time.time()
+
+        # Log scan request
+        log_event(logger, "web_scan_request", {
+            "url": url,
+            "source": "web_interface",
+            "user_agent": request.headers.get('User-Agent', 'Unknown')
+        })
+
         # Fetch URL content safely
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
-        response = requests.get(url, headers=headers, timeout=10, verify=True)
+        # Disable SSL verification to avoid certificate issues during scanning
+        response = requests.get(url, headers=headers, timeout=10, verify=False)
         
         # Only process HTML content
         content_type = response.headers.get('Content-Type', '')
@@ -200,6 +276,15 @@ def scan_url():
         
         # If high confidence ML detection, return result
         if is_phishing and confidence >= ml_detector.confidence_threshold:
+            # Log phishing detection
+            log_event(logger, "web_phishing_detected", {
+                "url": url,
+                "confidence": float(confidence),
+                "detection_method": "machine_learning",
+                "source": "web_interface",
+                "scan_time": time.time() - start_time
+            })
+
             return jsonify({
                 'result': 'High confidence phishing detected',
                 'safe': False,

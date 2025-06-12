@@ -3,19 +3,21 @@ server:
   grpc_listen_port: 0
 
 positions:
-  filename: ./positions.yaml
+  filename: /tmp/positions.yaml
 
 clients:
-  - url: http://localhost:4100/loki/api/v1/push
+  - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
-  - job_name: smart_proxy
+  - job_name: smart_proxy_logs
     static_configs:
     - targets:
         - localhost
       labels:
         job: smart_proxy
-        __path__: C:/Users/igou/Desktop/bureau/smart proxy1/logs/*.json
+        service: phishing_detector
+        environment: production
+        __path__: /var/log/smart-proxy/*.json
     pipeline_stages:
       - json:
           expressions:
@@ -34,6 +36,18 @@ scrape_configs:
             pattern_count: pattern_count
             keyword_count: keyword_count
             metric_name: metric_name
+            client_id: client_id
+            detection_method: detection_method
+            ml_model_load_time: ml_model_load_time
+            feature_count: feature_count
+            detection_count: detection_count
+            detection_types: detection_types
       - timestamp:
           source: timestamp
           format: unix_ms
+      - labels:
+          level:
+          event:
+          domain:
+          is_phishing:
+          detection_method:

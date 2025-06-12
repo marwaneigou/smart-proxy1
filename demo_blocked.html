@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>⚠️ ACCESS BLOCKED - Smart Proxy</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: linear-gradient(135deg, #1a0000 0%, #330000 50%, #1a0000 100%);
+            color: white; 
+            text-align: center; 
+            padding: 50px; 
+            margin: 0;
+            min-height: 100vh;
+        }
+        .threat-container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: rgba(0,0,0,0.9); 
+            padding: 40px; 
+            border-radius: 20px; 
+            border: 2px solid #ff0000;
+            box-shadow: 0 0 30px rgba(255,0,0,0.3);
+            backdrop-filter: blur(15px);
+        }
+        h1 { 
+            color: #ff0000; 
+            font-size: 2.5rem; 
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255,0,0,0.5);
+            animation: textGlow 2s ease-in-out infinite;
+        }
+        @keyframes textGlow {
+            0%, 100% { text-shadow: 0 0 10px rgba(255,0,0,0.5); }
+            50% { text-shadow: 0 0 20px rgba(255,0,0,0.8); }
+        }
+        .warning-icon { 
+            font-size: 4rem; 
+            color: #ff0000; 
+            margin-bottom: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .url-display { 
+            background: rgba(255,0,0,0.1); 
+            border: 2px solid #ff0000; 
+            padding: 15px; 
+            margin: 20px 0; 
+            border-radius: 10px;
+            word-break: break-all;
+            font-family: monospace;
+            color: #ff6666;
+        }
+        .detection-info {
+            background: rgba(255,0,0,0.05);
+            border-left: 4px solid #ff0000;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 8px;
+        }
+        .btn { 
+            display: inline-block; 
+            padding: 15px 30px; 
+            margin: 10px; 
+            border-radius: 10px; 
+            text-decoration: none; 
+            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-safe { 
+            background: linear-gradient(135deg, #10b981, #34d399); 
+            color: white; 
+        }
+        .btn-danger { 
+            background: linear-gradient(135deg, #ef4444, #f87171); 
+            color: white; 
+        }
+        .btn:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="threat-container">
+        <div class="warning-icon">🛡️</div>
+        <h1>BLACKLISTED WEBSITE BLOCKED</h1>
+        <p>This website has been manually flagged as malicious and added to our security blacklist.</p>
+        <div class="url-display">https://chat.deepseek.com/login</div>
+        <div class="detection-info">
+            <h3>🚨 Detection Details:</h3>
+            <p><strong>Detection Method:</strong> Domain Blacklist</p>
+            <p><strong>Domain:</strong> chat.deepseek.com</p>
+            <p><strong>Status:</strong> Manually flagged as malicious</p>
+            <p>This site has been identified as potentially harmful and blocked to protect your security.</p>
+        </div>
+        <div style="margin-top: 30px;">
+            <a href="http://127.0.0.1:5000" class="btn btn-safe">🛡️ Go Back Safely</a>
+            <button class="btn btn-danger" onclick="showWarning()">⚠️ Proceed Anyway (Risky)</button>
+        </div>
+        <p style="margin-top: 20px; font-size: 0.9rem; color: #ccc;">
+            Protected by Smart Proxy Security System
+        </p>
+    </div>
+
+    <script>
+        function showWarning() {
+            alert('⚠️ WARNING: This is a demonstration of the blocked page.\n\nIn a real scenario, this would be a dangerous action that could compromise your security.');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: smart-proxy-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION=false
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:latest
+    container_name: smart-proxy-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-storage:/loki
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: smart-proxy-promtail
+    volumes:
+      - ./logs:/var/log/smart-proxy:ro
+      - ./promtail/promtail-config.yaml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - monitoring
+    depends_on:
+      - loki
+    restart: unless-stopped
+
+volumes:
+  grafana-storage:
+  loki-storage:
+
+networks:
+  monitoring:
+    driver: bridge

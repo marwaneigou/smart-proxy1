@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚠️ SECURITY THREAT DETECTED - Smart Proxy</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: linear-gradient(135deg, #1a0000 0%, #330000 50%, #1a0000 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated warning background */
+        .warning-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 0, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 107, 53, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 0, 0, 0.05) 0%, transparent 50%);
+            animation: warningPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes warningPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        /* Floating danger particles */
+        .danger-particle {
+            position: absolute;
+            color: #ff0000;
+            font-size: 1.5rem;
+            animation: floatDanger 4s ease-in-out infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes floatDanger {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
+            50% { transform: translateY(-30px) rotate(180deg); opacity: 1; }
+        }
+
+        /* Header */
+        .threat-header {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 3px solid #ff0000;
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(255, 0, 0, 0.3);
+            animation: headerAlert 2s ease-in-out infinite;
+        }
+
+        @keyframes headerAlert {
+            0%, 100% { border-bottom-color: #ff0000; }
+            50% { border-bottom-color: #ff6b35; }
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0 2rem;
+        }
+
+        .threat-logo {
+            font-size: 2.5rem;
+            color: #ff0000;
+            animation: shake 0.5s ease-in-out infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+
+        .header-text h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ff0000;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+
+        .header-text p {
+            color: #ffcccc;
+            font-size: 1rem;
+        }
+
+        /* Main Content */
+        .threat-container {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .threat-card {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(15px);
+            border: 2px solid #ff0000;
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 20px 40px rgba(255, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: cardPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes cardPulse {
+            0%, 100% { box-shadow: 0 20px 40px rgba(255, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1); }
+            50% { box-shadow: 0 25px 50px rgba(255, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1); }
+        }
+
+        .threat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff0000, #ff6b35, #ff0000);
+            animation: borderScan 2s linear infinite;
+        }
+
+        @keyframes borderScan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .threat-icon {
+            font-size: 5rem;
+            color: #ff0000;
+            margin-bottom: 1.5rem;
+            animation: iconPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .threat-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #ff0000;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+            animation: textGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes textGlow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255, 0, 0, 0.5); }
+            50% { text-shadow: 0 0 30px rgba(255, 0, 0, 0.8); }
+        }
+
+        .threat-description {
+            font-size: 1.2rem;
+            color: #ffcccc;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .url-display {
+            background: rgba(255, 0, 0, 0.1);
+            border: 2px solid #ff0000;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 2rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            word-break: break-all;
+            color: #ff6666;
+            animation: urlBlink 1s ease-in-out infinite;
+        }
+
+        @keyframes urlBlink {
+            0%, 100% { background: rgba(255, 0, 0, 0.1); }
+            50% { background: rgba(255, 0, 0, 0.2); }
+        }
+
+        .threat-details {
+            background: rgba(255, 0, 0, 0.05);
+            border-left: 4px solid #ff0000;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .threat-details h3 {
+            color: #ff0000;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .threat-details ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .threat-details li {
+            padding: 0.5rem 0;
+            color: #ffcccc;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .threat-details li i {
+            color: #ff0000;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            min-width: 180px;
+            justify-content: center;
+        }
+
+        .btn-safe {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-safe:hover {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        /* Footer */
+        .threat-footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .threat-title {
+                font-size: 2rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="warning-bg"></div>
+    
+    <!-- Floating danger particles -->
+    <div class="danger-particle" style="top: 10%; left: 10%; animation-delay: 0s;">⚠️</div>
+    <div class="danger-particle" style="top: 20%; left: 80%; animation-delay: 1s;">🛡️</div>
+    <div class="danger-particle" style="top: 60%; left: 20%; animation-delay: 2s;">⚠️</div>
+    <div class="danger-particle" style="top: 80%; left: 70%; animation-delay: 3s;">🔒</div>
+    <div class="danger-particle" style="top: 40%; left: 90%; animation-delay: 1.5s;">⚠️</div>
+
+    <!-- Header -->
+    <header class="threat-header">
+        <div class="header-content">
+            <div class="threat-logo">
+                <i class="fas fa-shield-exclamation"></i>
+            </div>
+            <div class="header-text">
+                <h1>SECURITY THREAT DETECTED</h1>
+                <p>Smart Proxy - Advanced Threat Protection System</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="threat-container">
+        <div class="threat-card">
+            <div class="threat-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            
+            <h1 class="threat-title">PHISHING WEBSITE BLOCKED</h1>
+            
+            <p class="threat-description">
+                Our advanced AI security system has detected that the website you're trying to access 
+                is likely a <strong>phishing site</strong> designed to steal your personal information, 
+                passwords, or financial data.
+            </p>
+
+            <div class="url-display">
+                https://paypal-security-verification.net/login
+            </div>
+
+            <div class="threat-details">
+                <h3>
+                    <i class="fas fa-exclamation-circle"></i>
+                    Why was this site blocked?
+                </h3>
+                <ul>
+                    <li><i class="fas fa-brain"></i> Machine Learning analysis detected suspicious patterns (95.8% confidence)</li>
+                    <li><i class="fas fa-mask"></i> Domain impersonation of PayPal services</li>
+                    <li><i class="fas fa-fishing"></i> Known phishing indicators present</li>
+                    <li><i class="fas fa-database"></i> Listed in threat intelligence databases</li>
+                </ul>
+            </div>
+
+            <div class="action-buttons">
+                <a href="http://127.0.0.1:5000" class="btn btn-safe">
+                    <i class="fas fa-arrow-left"></i>
+                    Go Back Safely
+                </a>
+                
+                <a href="http://127.0.0.1:5000" class="btn btn-info">
+                    <i class="fas fa-search"></i>
+                    Scan Another URL
+                </a>
+                
+                <button class="btn btn-danger" onclick="showWarning()">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Proceed Anyway (Risky)
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="threat-footer">
+        <p>Protected by Smart Proxy Advanced Threat Detection System</p>
+        <p>This is a demonstration of the cybersecurity-themed threat message interface.</p>
+    </footer>
+
+    <script>
+        function showWarning() {
+            alert('⚠️ WARNING: This is a demonstration page.\n\nIn a real scenario, this would be a dangerous action that could compromise your security.');
+        }
+
+        // Add some dynamic effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add random floating particles
+            setInterval(() => {
+                if (Math.random() < 0.3) {
+                    createFloatingParticle();
+                }
+            }, 2000);
+        });
+
+        function createFloatingParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'danger-particle';
+            particle.innerHTML = ['⚠️', '🛡️', '🔒'][Math.floor(Math.random() * 3)];
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 2 + 's';
+            
+            document.body.appendChild(particle);
+            
+            // Remove after animation
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
+                }
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

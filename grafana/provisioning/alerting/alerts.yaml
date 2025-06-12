@@ -1,0 +1,103 @@
+apiVersion: 1
+
+groups:
+  - name: smart_proxy_alerts
+    orgId: 1
+    folder: Smart Proxy Alerts
+    interval: 1m
+    rules:
+      - uid: high_phishing_rate
+        title: High Phishing Detection Rate
+        condition: A
+        data:
+          - refId: A
+            queryType: ""
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'sum(rate({job="smart_proxy"} |= "EVENT:ml_phishing_detected" [5m]))'
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: NoData
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          description: "High rate of phishing detections: {{ $value }} per second"
+          summary: "Unusual phishing activity detected"
+        labels:
+          severity: warning
+          team: security
+
+      - uid: system_performance_degraded
+        title: System Performance Degraded
+        condition: A
+        data:
+          - refId: A
+            queryType: ""
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'avg_over_time({job="smart_proxy"} |= "METRIC:analysis_time_ms" | json | unwrap analysis_time_ms [5m])'
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: "Average analysis time is {{ $value }}ms (threshold: 1000ms)"
+          summary: "System performance has degraded"
+        labels:
+          severity: warning
+          team: operations
+
+      - uid: ml_model_failure
+        title: ML Model Failure
+        condition: A
+        data:
+          - refId: A
+            queryType: ""
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'sum(count_over_time({job="smart_proxy"} |= "EVENT:prediction_failed" [10m]))'
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: NoData
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          description: "ML model failures detected: {{ $value }} in last 10 minutes"
+          summary: "Machine learning model is experiencing failures"
+        labels:
+          severity: critical
+          team: ml_ops
+
+      - uid: excessive_bypasses
+        title: Excessive Bypass Requests
+        condition: A
+        data:
+          - refId: A
+            queryType: ""
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'sum(count_over_time({job="smart_proxy"} |= "EVENT:bypass_granted" [1h]))'
+              intervalMs: 1000
+              maxDataPoints: 43200
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: "{{ $value }} bypass requests granted in the last hour"
+          summary: "Unusually high number of security bypasses"
+        labels:
+          severity: warning
+          team: security

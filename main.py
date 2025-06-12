@@ -36,8 +36,8 @@ class SmartProxy:
         self._load_config()
         # Load whitelist
         self._load_whitelist()
-        ctx.log.info("Smart Proxy initialized with config:")
-        ctx.log.info(json.dumps(self.config, indent=2))
+        print("Smart Proxy initialized with config:")
+        print(json.dumps(self.config, indent=2))
     
     def _load_config(self):
         """Load config from file if exists"""
@@ -47,9 +47,9 @@ class SmartProxy:
                 with open(config_path, 'r') as f:
                     user_config = json.load(f)
                     self.config.update(user_config)
-                    ctx.log.info("Config loaded from config.json")
+                    print("Config loaded from config.json")
         except Exception as e:
-            ctx.log.error(f"Error loading config: {e}")
+            print(f"Error loading config: {e}")
             
     def _load_whitelist(self):
         """Load whitelist patterns from file"""
@@ -60,11 +60,11 @@ class SmartProxy:
                     patterns = json.load(f)
                     # Add patterns directly to whitelist set
                     self.whitelist.update(patterns)
-                    ctx.log.info(f"Loaded {len(patterns)} whitelist patterns from whitelist.json")
+                    print(f"Loaded {len(patterns)} whitelist patterns from whitelist.json")
             else:
-                ctx.log.warn("whitelist.json not found. Running without whitelist.")
+                print("whitelist.json not found. Running without whitelist.")
         except Exception as e:
-            ctx.log.error(f"Error loading whitelist: {e}")
+            print(f"Error loading whitelist: {e}")
             
     def _is_whitelisted(self, host):
         """Check if a host matches any whitelist pattern"""
@@ -223,42 +223,138 @@ class SmartProxy:
             # Log token for debugging
             ctx.log.info(f"Created bypass token for {host}: {bypass_token}")
             
-            # Create a more informative block page with bypass option
-            block_html = f"""
-            <html>
-            <head>
-                <title>Security Warning - Access Blocked</title>
-                <style>
-                    body {{ font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }}
-                    .container {{ max-width: 800px; margin: 50px auto; padding: 30px; background-color: white; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
-                    h1 {{ color: #d9534f; }}
-                    .alert {{ background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px; }}
-                    .info {{ background-color: #e2e3e5; border: 1px solid #d6d8db; color: #383d41; padding: 15px; border-radius: 5px; margin-bottom: 20px; }}
-                    .detection-method {{ font-weight: bold; }}
-                    .btn {{ display: inline-block; padding: 10px 15px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 5px; margin-right: 10px; }}
-                    .btn-danger {{ background-color: #dc3545; }}
-                    .btn:hover {{ opacity: 0.9; }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>Access Blocked</h1>
-                    <div class="alert">
-                        <p><strong>Warning:</strong> This site has been flagged as potentially malicious.</p>
+            # Use cybersecurity-themed blocked page
+            try:
+                with open('threat_message.html', 'r', encoding='utf-8') as f:
+                    threat_template = f.read()
+
+                # Replace placeholders with actual values for blacklist detection
+                blocked_url = flow.request.pretty_url.rstrip('/')
+                block_html = threat_template.replace('<!-- URL will be inserted here -->', blocked_url)
+
+                # Update the title and description for blacklist detection
+                block_html = block_html.replace('PHISHING WEBSITE BLOCKED', 'BLACKLISTED WEBSITE BLOCKED')
+                block_html = block_html.replace('phishing site', 'blacklisted site')
+                block_html = block_html.replace('Machine Learning analysis detected suspicious patterns',
+                                              'Domain blacklist detection - manually flagged as malicious')
+
+                # Add URL parameters for JavaScript
+                block_html = block_html.replace('window.location.search',
+                                              f"'?url={blocked_url}&method=blacklist&bypass={bypass_token}'")
+
+            except FileNotFoundError:
+                # Fallback to cybersecurity-themed blocked page
+                block_html = f"""
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>⚠️ ACCESS BLOCKED - Smart Proxy</title>
+                    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+                    <style>
+                        body {{
+                            font-family: 'Segoe UI', sans-serif;
+                            background: linear-gradient(135deg, #1a0000 0%, #330000 50%, #1a0000 100%);
+                            color: white;
+                            text-align: center;
+                            padding: 50px;
+                            margin: 0;
+                            min-height: 100vh;
+                        }}
+                        .threat-container {{
+                            max-width: 800px;
+                            margin: 0 auto;
+                            background: rgba(0,0,0,0.9);
+                            padding: 40px;
+                            border-radius: 20px;
+                            border: 2px solid #ff0000;
+                            box-shadow: 0 0 30px rgba(255,0,0,0.3);
+                            backdrop-filter: blur(15px);
+                        }}
+                        h1 {{
+                            color: #ff0000;
+                            font-size: 2.5rem;
+                            margin-bottom: 20px;
+                            text-shadow: 0 0 10px rgba(255,0,0,0.5);
+                            animation: textGlow 2s ease-in-out infinite;
+                        }}
+                        @keyframes textGlow {{
+                            0%, 100% {{ text-shadow: 0 0 10px rgba(255,0,0,0.5); }}
+                            50% {{ text-shadow: 0 0 20px rgba(255,0,0,0.8); }}
+                        }}
+                        .warning-icon {{
+                            font-size: 4rem;
+                            color: #ff0000;
+                            margin-bottom: 20px;
+                            animation: pulse 1.5s infinite;
+                        }}
+                        @keyframes pulse {{
+                            0%, 100% {{ transform: scale(1); }}
+                            50% {{ transform: scale(1.1); }}
+                        }}
+                        .url-display {{
+                            background: rgba(255,0,0,0.1);
+                            border: 2px solid #ff0000;
+                            padding: 15px;
+                            margin: 20px 0;
+                            border-radius: 10px;
+                            word-break: break-all;
+                            font-family: monospace;
+                            color: #ff6666;
+                        }}
+                        .detection-info {{
+                            background: rgba(255,0,0,0.05);
+                            border-left: 4px solid #ff0000;
+                            padding: 15px;
+                            margin: 20px 0;
+                            text-align: left;
+                            border-radius: 8px;
+                        }}
+                        .btn {{
+                            display: inline-block;
+                            padding: 15px 30px;
+                            margin: 10px;
+                            border-radius: 10px;
+                            text-decoration: none;
+                            font-weight: bold;
+                            transition: all 0.3s;
+                            border: none;
+                            cursor: pointer;
+                        }}
+                        .btn-safe {{
+                            background: linear-gradient(135deg, #10b981, #34d399);
+                            color: white;
+                        }}
+                        .btn-danger {{
+                            background: linear-gradient(135deg, #ef4444, #f87171);
+                            color: white;
+                        }}
+                        .btn:hover {{ transform: translateY(-2px); }}
+                    </style>
+                </head>
+                <body>
+                    <div class="threat-container">
+                        <div class="warning-icon">🛡️</div>
+                        <h1>BLACKLISTED WEBSITE BLOCKED</h1>
+                        <p>This website has been manually flagged as malicious and added to our security blacklist.</p>
+                        <div class="url-display">{flow.request.pretty_url.rstrip('/')}</div>
+                        <div class="detection-info">
+                            <h3>🚨 Detection Details:</h3>
+                            <p><strong>Detection Method:</strong> Domain Blacklist</p>
+                            <p><strong>Domain:</strong> {host}</p>
+                            <p><strong>Status:</strong> Manually flagged as malicious</p>
+                            <p>This site has been identified as potentially harmful and blocked to protect your security.</p>
+                        </div>
+                        <div style="margin-top: 30px;">
+                            <a href="javascript:history.back()" class="btn btn-safe">🛡️ Go Back Safely</a>
+                            <a href="{flow.request.pretty_url.rstrip('/')}?bypass={bypass_token}" class="btn btn-danger">⚠️ Proceed Anyway (Risky)</a>
+                        </div>
+                        <p style="margin-top: 20px; font-size: 0.9rem; color: #ccc;">
+                            Protected by Smart Proxy Security System
+                        </p>
                     </div>
-                    <div class="info">
-                        <p><span class="detection-method">Detection Method:</span> Domain Blacklist</p>
-                        <p><span class="detection-method">Domain:</span> {host}</p>
-                        <p>This site has been manually added to our blacklist of known malicious websites.</p>
-                    </div>
-                    <p>If you believe this is a mistake, you can:</p>
-                    <a href="/" class="btn">Go Back</a>
-                    <a href="/bypass?token={bypass_token}" class="btn btn-danger">Proceed Anyway (Not Recommended)</a>
-                    <p><small>Note: Proceeding to blocked sites may put your data and device at risk.</small></p>
-                </div>
-            </body>
-            </html>
-            """
+                </body>
+                </html>
+                """
             
             flow.response = http.Response.make(
                 403,
@@ -351,55 +447,108 @@ class SmartProxy:
                 # Log token for debugging
                 ctx.log.info(f"Created bypass token for {host}: {bypass_token}")
                 
-                # Create detailed blocked page with styled information
-                blocked_page = f"""
-                <html>
-                <head>
-                    <title>Phishing Site Blocked</title>
-                    <style>
-                        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }}
-                        h1 {{ color: #d32f2f; text-align: center; }}
-                        .warning-box {{ background-color: #ffebee; border: 1px solid #ffcdd2; padding: 20px; border-radius: 4px; margin-bottom: 20px; }}
-                        .info-box {{ background-color: #e3f2fd; border: 1px solid #bbdefb; padding: 20px; border-radius: 4px; }}
-                        .detection-method {{ font-weight: bold; color: #d32f2f; }}
-                        .confidence {{ font-size: 1.2em; font-weight: bold; }}
-                        .details {{ margin-top: 20px; }}
-                        .url {{ word-break: break-all; font-family: monospace; background: #f5f5f5; padding: 10px; }}
-                        .actions {{ margin-top: 30px; text-align: center; }}
-                        .btn {{ display: inline-block; padding: 10px 15px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 5px; margin-right: 10px; }}
-                        .btn-danger {{ background-color: #dc3545; }}
-                        .btn:hover {{ opacity: 0.9; }}
-                    </style>
-                </head>
-                <body>
-                    <div class="warning-box">
-                        <h1>Phishing Site Blocked</h1>
-                        <p>This site has been detected as a phishing attempt with <span class="confidence">{confidence*100:.2f}%</span> confidence.</p>
-                    </div>
-                    
-                    <div class="info-box">
-                        <h2>Detection Details</h2>
-                        <p><strong>Detection Method:</strong> <span class="detection-method">Machine Learning Model</span></p>
-                        <p><strong>URL:</strong> <div class="url">{flow.request.pretty_url.rstrip('/')}</div></p>
-                        <p><strong>ML Confidence:</strong> {confidence*100:.2f}%</p>
-                        <p><strong>Detection Time:</strong> {ml_time_ms*1000:.2f} ms</p>
-                        
-                        <div class="details">
-                            <h3>Why was this blocked?</h3>
-                            <p>Our machine learning model has identified this site as likely phishing based on multiple factors including URL structure, domain characteristics, and content analysis.</p>
-                            <p>This site has been added to the blacklist to protect you from potential credential theft or other malicious activity.</p>
+                # Load the cybersecurity-themed threat message
+                try:
+                    with open('threat_message.html', 'r', encoding='utf-8') as f:
+                        threat_template = f.read()
+
+                    # Replace placeholders with actual values
+                    blocked_page = threat_template.replace('<!-- URL will be inserted here -->',
+                                                         flow.request.pretty_url.rstrip('/'))
+
+                    # Add URL parameters for JavaScript to use
+                    clean_url = flow.request.pretty_url.rstrip('/')
+                    blocked_page = blocked_page.replace('window.location.search',
+                                                      f"'?url={clean_url}&confidence={confidence}&bypass={bypass_token}'")
+
+                except FileNotFoundError:
+                    # Fallback to basic threat message if template not found
+                    blocked_page = f"""
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>⚠️ SECURITY THREAT DETECTED</title>
+                        <style>
+                            body {{
+                                font-family: 'Segoe UI', sans-serif;
+                                background: linear-gradient(135deg, #1a0000 0%, #330000 50%, #1a0000 100%);
+                                color: white;
+                                text-align: center;
+                                padding: 50px;
+                                margin: 0;
+                            }}
+                            .threat-container {{
+                                max-width: 800px;
+                                margin: 0 auto;
+                                background: rgba(0,0,0,0.8);
+                                padding: 40px;
+                                border-radius: 20px;
+                                border: 2px solid #ff0000;
+                                box-shadow: 0 0 30px rgba(255,0,0,0.3);
+                            }}
+                            h1 {{
+                                color: #ff0000;
+                                font-size: 2.5rem;
+                                margin-bottom: 20px;
+                                text-shadow: 0 0 10px rgba(255,0,0,0.5);
+                            }}
+                            .warning-icon {{
+                                font-size: 4rem;
+                                color: #ff0000;
+                                margin-bottom: 20px;
+                                animation: pulse 1.5s infinite;
+                            }}
+                            @keyframes pulse {{
+                                0%, 100% {{ transform: scale(1); }}
+                                50% {{ transform: scale(1.1); }}
+                            }}
+                            .url-display {{
+                                background: rgba(255,0,0,0.1);
+                                border: 2px solid #ff0000;
+                                padding: 15px;
+                                margin: 20px 0;
+                                border-radius: 10px;
+                                word-break: break-all;
+                                font-family: monospace;
+                            }}
+                            .btn {{
+                                display: inline-block;
+                                padding: 15px 30px;
+                                margin: 10px;
+                                border-radius: 10px;
+                                text-decoration: none;
+                                font-weight: bold;
+                                transition: all 0.3s;
+                            }}
+                            .btn-safe {{
+                                background: linear-gradient(135deg, #10b981, #34d399);
+                                color: white;
+                            }}
+                            .btn-danger {{
+                                background: linear-gradient(135deg, #ef4444, #f87171);
+                                color: white;
+                            }}
+                            .btn:hover {{ transform: translateY(-2px); }}
+                        </style>
+                    </head>
+                    <body>
+                        <div class="threat-container">
+                            <div class="warning-icon">⚠️</div>
+                            <h1>PHISHING WEBSITE BLOCKED</h1>
+                            <p>Our AI security system detected this site as a phishing threat with <strong>{confidence*100:.1f}%</strong> confidence.</p>
+                            <div class="url-display">{clean_url}</div>
+                            <p>This website may steal your passwords, personal information, or install malware on your device.</p>
+                            <div style="margin-top: 30px;">
+                                <a href="javascript:history.back()" class="btn btn-safe">🛡️ Go Back Safely</a>
+                                <a href="{clean_url}?bypass={bypass_token}" class="btn btn-danger">⚠️ Proceed Anyway (Risky)</a>
+                            </div>
+                            <p style="margin-top: 20px; font-size: 0.9rem; color: #ccc;">
+                                Protected by Smart Proxy Advanced Threat Detection
+                            </p>
                         </div>
-                    </div>
-                    
-                    <div class="actions">
-                        <p>If you believe this is a false positive:</p>
-                        <a href="/" class="btn">Go Back</a>
-                        <a href="/bypass?token={bypass_token}" class="btn btn-danger">Proceed Anyway (Not Recommended)</a>
-                        <p><small>Note: Proceeding to blocked sites may put your data and device at risk.</small></p>
-                    </div>
-                </body>
-                </html>
-                """
+                    </body>
+                    </html>
+                    """
                 
                 flow.response = http.Response.make(
                     403,
@@ -426,62 +575,125 @@ class SmartProxy:
                     # Log token for debugging
                     ctx.log.info(f"Created bypass token for {host}: {bypass_token}")
 
-                    # Create detailed blocked page with styled information for traditional detection
-                    blocked_page = f"""
-                    <html>
-                    <head>
-                        <title>Phishing Site Blocked</title>
-                        <style>
-                            body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }}
-                            h1 {{ color: #d32f2f; text-align: center; }}
-                            .warning-box {{ background-color: #ffebee; border: 1px solid #ffcdd2; padding: 20px; border-radius: 4px; margin-bottom: 20px; }}
-                            .info-box {{ background-color: #e3f2fd; border: 1px solid #bbdefb; padding: 20px; border-radius: 4px; }}
-                            .detection-method {{ font-weight: bold; color: #2e7d32; }}
-                            .issues {{ font-family: monospace; background: #f5f5f5; padding: 10px; }}
-                            .details {{ margin-top: 20px; }}
-                            .url {{ word-break: break-all; font-family: monospace; background: #f5f5f5; padding: 10px; }}
-                            li {{ margin-bottom: 8px; }}
-                            .actions {{ margin-top: 30px; text-align: center; }}
-                            .btn {{ display: inline-block; padding: 10px 15px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 5px; margin-right: 10px; }}
-                            .btn-danger {{ background-color: #dc3545; }}
-                            .btn:hover {{ opacity: 0.9; }}
-                        </style>
-                    </head>
-                    <body>
-                        <div class="warning-box">
-                            <h1>Phishing Site Blocked</h1>
-                            <p>This site has been detected as a phishing attempt based on multiple suspicious patterns.</p>
-                        </div>
-                        
-                        <div class="info-box">
-                            <h2>Detection Details</h2>
-                            <p><strong>Detection Method:</strong> <span class="detection-method">Traditional Pattern Analysis</span></p>
-                            <p><strong>URL:</strong> <div class="url">{flow.request.pretty_url.rstrip('/')}</div></p>
-                            <p><strong>ML Confidence:</strong> {confidence*100:.2f}% (below threshold)</p>
-                            
-                            <div class="details">
-                                <h3>Detected Issues:</h3>
-                                <div class="issues">
+                    # Use the same cybersecurity-themed threat message for traditional detection
+                    try:
+                        with open('threat_message.html', 'r', encoding='utf-8') as f:
+                            threat_template = f.read()
+
+                        # Replace placeholders with actual values
+                        blocked_page = threat_template.replace('<!-- URL will be inserted here -->',
+                                                             flow.request.pretty_url.rstrip('/'))
+
+                        # Add URL parameters for JavaScript to use
+                        clean_url = flow.request.pretty_url.rstrip('/')
+                        blocked_page = blocked_page.replace('window.location.search',
+                                                          f"'?url={clean_url}&confidence={confidence}&bypass={bypass_token}&patterns={','.join(analysis_results)}'")
+
+                        # Add detected patterns to the threat details
+                        patterns_html = ''.join([f'<li><i class="fas fa-exclamation-circle"></i> {pattern}</li>' for pattern in analysis_results])
+                        blocked_page = blocked_page.replace('<!-- Detected patterns will be inserted here -->', patterns_html)
+
+                    except FileNotFoundError:
+                        # Fallback to basic threat message for traditional detection
+                        blocked_page = f"""
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>⚠️ SECURITY THREAT DETECTED</title>
+                            <style>
+                                body {{
+                                    font-family: 'Segoe UI', sans-serif;
+                                    background: linear-gradient(135deg, #1a0000 0%, #330000 50%, #1a0000 100%);
+                                    color: white;
+                                    text-align: center;
+                                    padding: 50px;
+                                    margin: 0;
+                                }}
+                                .threat-container {{
+                                    max-width: 800px;
+                                    margin: 0 auto;
+                                    background: rgba(0,0,0,0.8);
+                                    padding: 40px;
+                                    border-radius: 20px;
+                                    border: 2px solid #ff0000;
+                                    box-shadow: 0 0 30px rgba(255,0,0,0.3);
+                                }}
+                                h1 {{
+                                    color: #ff0000;
+                                    font-size: 2.5rem;
+                                    margin-bottom: 20px;
+                                    text-shadow: 0 0 10px rgba(255,0,0,0.5);
+                                }}
+                                .warning-icon {{
+                                    font-size: 4rem;
+                                    color: #ff0000;
+                                    margin-bottom: 20px;
+                                    animation: pulse 1.5s infinite;
+                                }}
+                                @keyframes pulse {{
+                                    0%, 100% {{ transform: scale(1); }}
+                                    50% {{ transform: scale(1.1); }}
+                                }}
+                                .url-display {{
+                                    background: rgba(255,0,0,0.1);
+                                    border: 2px solid #ff0000;
+                                    padding: 15px;
+                                    margin: 20px 0;
+                                    border-radius: 10px;
+                                    word-break: break-all;
+                                    font-family: monospace;
+                                }}
+                                .patterns {{
+                                    background: rgba(255,0,0,0.05);
+                                    border-left: 4px solid #ff0000;
+                                    padding: 15px;
+                                    margin: 20px 0;
+                                    text-align: left;
+                                }}
+                                .btn {{
+                                    display: inline-block;
+                                    padding: 15px 30px;
+                                    margin: 10px;
+                                    border-radius: 10px;
+                                    text-decoration: none;
+                                    font-weight: bold;
+                                    transition: all 0.3s;
+                                }}
+                                .btn-safe {{
+                                    background: linear-gradient(135deg, #10b981, #34d399);
+                                    color: white;
+                                }}
+                                .btn-danger {{
+                                    background: linear-gradient(135deg, #ef4444, #f87171);
+                                    color: white;
+                                }}
+                                .btn:hover {{ transform: translateY(-2px); }}
+                            </style>
+                        </head>
+                        <body>
+                            <div class="threat-container">
+                                <div class="warning-icon">🛡️</div>
+                                <h1>SUSPICIOUS WEBSITE BLOCKED</h1>
+                                <p>Our pattern analysis system detected multiple security threats on this website.</p>
+                                <div class="url-display">{flow.request.pretty_url.rstrip('/')}</div>
+                                <div class="patterns">
+                                    <h3>🚨 Detected Threat Patterns:</h3>
                                     <ul>
-                                        {''.join([f'<li>{issue}</li>' for issue in analysis_results])}
+                                        {''.join([f'<li>• {issue}</li>' for issue in analysis_results])}
                                     </ul>
                                 </div>
-                                
-                                <h3>Why was this blocked?</h3>
-                                <p>Our security system detected multiple suspicious patterns that are commonly associated with phishing websites.</p>
-                                <p>This site has been added to the blacklist to protect you from potential credential theft or other malicious activity.</p>
+                                <p>This website may be attempting to steal your information or compromise your security.</p>
+                                <div style="margin-top: 30px;">
+                                    <a href="javascript:history.back()" class="btn btn-safe">🛡️ Go Back Safely</a>
+                                    <a href="{flow.request.pretty_url.rstrip('/')}?bypass={bypass_token}" class="btn btn-danger">⚠️ Proceed Anyway (Risky)</a>
+                                </div>
+                                <p style="margin-top: 20px; font-size: 0.9rem; color: #ccc;">
+                                    Protected by Smart Proxy Pattern Analysis Engine
+                                </p>
                             </div>
-                        </div>
-                        
-                        <div class="actions">
-                            <p>If you believe this is a false positive:</p>
-                            <a href="/" class="btn">Go Back</a>
-                            <a href="/bypass?token={bypass_token}" class="btn btn-danger">Proceed Anyway (Not Recommended)</a>
-                            <p><small>Note: Proceeding to blocked sites may put your data and device at risk.</small></p>
-                        </div>
-                    </body>
-                    </html>
-                    """
+                        </body>
+                        </html>
+                        """
                     
                     flow.response = http.Response.make(
                         403,

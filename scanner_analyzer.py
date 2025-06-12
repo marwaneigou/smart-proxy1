@@ -11,8 +11,13 @@ class ScannerAnalyzer:
     """A version of TrafficAnalyzer adapted for direct URL scanning without mitmproxy"""
     
     # Class variables for better performance
-    PHISHING_KEYWORDS = ["login", "password", "signin", "account", "bank", "credit", "wallet", 
-                        "verify", "secure", "authenticate", "paypal", "billing"]
+    PHISHING_KEYWORDS = [
+        "login", "password", "signin", "account", "bank", "credit", "wallet",
+        "verify", "secure", "authenticate", "paypal", "billing", "suspended",
+        "security", "update", "confirm", "limited", "locked", "expired",
+        "amazon", "microsoft", "google", "facebook", "apple", "netflix",
+        "ebay", "instagram", "twitter", "linkedin", "dropbox", "adobe"
+    ]
     
     MALICIOUS_JS_PATTERNS = [
         r"eval\s*\(",
@@ -31,31 +36,160 @@ class ScannerAnalyzer:
         self.whitelist = set()
         self._load_whitelist()
     
+    def analyze_url(self, url):
+        """
+        Analyze just the URL for phishing patterns (without HTML content)
+        Returns a dictionary with safe/unsafe classification
+        """
+        start_time = time.time()
+
+        # Handle test URLs that don't actually exist
+        if any(test_domain in url for test_domain in ['.test', '.fake', '.evil', '.phishing-test']):
+            # This is a test URL - analyze it without making network requests
+            return self._analyze_test_url(url)
+
+        from urllib.parse import urlparse
+        parsed_url = urlparse(url)
+        domain = parsed_url.netloc
+
+        # Clean domain (remove www. if present)
+        if domain.startswith('www.'):
+            clean_domain = domain[4:]
+        else:
+            clean_domain = domain
+
+        # Check if domain is in whitelist (directly or via wildcard)
+        is_trusted = self._is_whitelisted(domain) or self._is_whitelisted(clean_domain)
+
+        if is_trusted:
+            logging.info(f"Domain {domain} is recognized as trusted (from whitelist)")
+            return {
+                'safe': True,
+                'confidence': 0.95,
+                'analysis_time': (time.time() - start_time) * 1000,
+                'trusted': True
+            }
+
+        # Analyze URL characteristics for phishing indicators
+        features = self._extract_url_features(url)
+        is_suspicious = self._classify_url_features(features)
+
+        return {
+            'safe': not is_suspicious,
+            'confidence': 0.8 if is_suspicious else 0.7,
+            'analysis_time': (time.time() - start_time) * 1000,
+            'features': features
+        }
+
+    def _analyze_test_url(self, url):
+        """Analyze test URLs without making network requests"""
+        # Extract features that indicate phishing
+        features = self._extract_url_features(url)
+        is_phishing = self._classify_url_features(features)
+
+        return {
+            'safe': not is_phishing,
+            'confidence': 0.9 if is_phishing else 0.8,
+            'analysis_time': 50,  # Simulated analysis time
+            'features': features,
+            'test_url': True
+        }
+
+    def _extract_url_features(self, url):
+        """Extract features from URL for analysis"""
+        from urllib.parse import urlparse
+        import re
+
+        parsed = urlparse(url)
+
+        return {
+            'url_length': len(url),
+            'domain_length': len(parsed.netloc),
+            'has_ip': bool(re.match(r'\d+\.\d+\.\d+\.\d+', parsed.netloc)),
+            'has_https': parsed.scheme == 'https',
+            'has_suspicious_words': any(word in url.lower() for word in self.PHISHING_KEYWORDS),
+            'subdomain_count': parsed.netloc.count('.'),
+            'special_char_count': sum(1 for c in url if c in '!@#$%^&*()'),
+            'path_length': len(parsed.path),
+            'query_length': len(parsed.query or '')
+        }
+
+    def _classify_url_features(self, features):
+        """Enhanced rule-based classification of URL features"""
+        suspicious_score = 0
+
+        # Long URLs are suspicious
+        if features['url_length'] > 75:
+            suspicious_score += 2
+        elif features['url_length'] > 50:
+            suspicious_score += 1
+
+        # IP addresses instead of domains (very suspicious)
+        if features['has_ip']:
+            suspicious_score += 4
+
+        # No HTTPS (less secure)
+        if not features['has_https']:
+            suspicious_score += 1
+
+        # Suspicious keywords (very important indicator)
+        if features['has_suspicious_words']:
+            suspicious_score += 3
+
+        # Too many subdomains (suspicious)
+        if features['subdomain_count'] > 4:
+            suspicious_score += 3
+        elif features['subdomain_count'] > 2:
+            suspicious_score += 1
+
+        # Many special characters
+        if features['special_char_count'] > 8:
+            suspicious_score += 2
+        elif features['special_char_count'] > 5:
+            suspicious_score += 1
+
+        # Very long domain names
+        if features['domain_length'] > 30:
+            suspicious_score += 2
+
+        # Long paths (could indicate complex phishing URLs)
+        if features['path_length'] > 50:
+            suspicious_score += 1
+
+        # Long query strings (suspicious)
+        if features['query_length'] > 100:
+            suspicious_score += 1
+
+        print(f"DEBUG: Suspicious score: {suspicious_score} for features: {features}")
+
+        # Return True if suspicious (lowered threshold to 3)
+        return suspicious_score >= 3
+
     def analyze(self, url, html_content):
         """
         Analyze URL and HTML content for phishing and malicious patterns
         Returns a dictionary with detected patterns and malicious flag
         """
         start_time = time.time()
-        
+
         # Check cache first for performance
         if url in self.cache:
             logging.info(f"[Cache Hit] Using cached result for {url}")
             return self.cache[url]
-        
+
         from urllib.parse import urlparse
         parsed_url = urlparse(url)
         domain = parsed_url.netloc
-        
+
         # Clean domain (remove www. if present)
         if domain.startswith('www.'):
             clean_domain = domain[4:]
         else:
             clean_domain = domain
-        
+
         # Check if domain is in whitelist (directly or via wildcard)
         is_trusted = self._is_whitelisted(domain) or self._is_whitelisted(clean_domain)
-        
+
         if is_trusted:
             logging.info(f"Domain {domain} is recognized as trusted (from whitelist)")
             # For trusted domains, return immediately with empty patterns
